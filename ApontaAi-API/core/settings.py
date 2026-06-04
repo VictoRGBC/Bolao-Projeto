@@ -66,6 +66,7 @@ SIMPLE_JWT = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # <--- ADICIONE ESTA LINHA AQUI
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -102,7 +103,7 @@ DATABASES = {
         'ENGINE': os.getenv('DJANGO_DB_ENGINE', 'django.db.backends.postgresql'),
         'NAME': os.getenv('DJANGO_DB_NAME', 'ApontaAi'),
         'USER': os.getenv('DJANGO_DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', ''),
+        'PASSWORD': os.getenv('DJANGO_DB_PASSWORD', 'masterkey'),
         'HOST': os.getenv('DJANGO_DB_HOST', 'localhost'),
         'PORT': os.getenv('DJANGO_DB_PORT', '5432'),
     }
@@ -141,6 +142,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'usuarios.Usuario'
+
+# Libera o acesso da API para o Front-end local
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/

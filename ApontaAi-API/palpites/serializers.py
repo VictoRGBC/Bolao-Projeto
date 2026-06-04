@@ -1,8 +1,8 @@
 from rest_framework import serializers
+from django.utils import timezone
 from .models import Palpite
 
 class PalpiteSerializer(serializers.ModelSerializer):
-    # O usuário logado será associado automaticamente na View, então deixamos read_only
     usuario = serializers.PrimaryKeyRelatedField(read_only=True)
     pontuou = serializers.BooleanField(read_only=True)
 
@@ -11,8 +11,17 @@ class PalpiteSerializer(serializers.ModelSerializer):
         fields = ['id', 'usuario', 'jogo', 'escolha', 'pontuou']
 
     def validate(self, data):
-        # Validação extra: O palpite só pode ser feito se o jogo ainda estiver 'agendado'
-        jogo = data['jogo']
-        if jogo.status != 'agendado':
-            raise serializers.ValidationError("Não é possível palpitar em um jogo que já começou ou terminou.")
+        # Se self.instance existir, significa que é uma ATUALIZAÇÃO (PATCH)
+        # Caso contrário, é uma CRIAÇÃO (POST)
+        jogo = self.instance.jogo if self.instance else data.get('jogo')
+        
+        if not jogo:
+            raise serializers.ValidationError("Jogo não especificado.")
+            
+        agora = timezone.now()
+
+        # Bloqueia tanto a criação quanto a alteração se o tempo esgotou
+        if jogo.status != 'agendado' or jogo.data_hora <= agora:
+            raise serializers.ValidationError("Tempo esgotado! O jogo já começou ou foi finalizado.")
+        
         return data
