@@ -31,8 +31,12 @@ export default function Dashboard() {
             setJogos(resJogos.data);
             setPalpites(resPalpites.data);
             
-            // Ordena o ranking do maior para o menor
-            const rankeados = resRanking.data.sort((a, b) => b.pontuacao_total - a.pontuacao_total);
+            // 1. Filtra removendo os administradores (!u.is_staff)
+            // 2. Ordena os usuários normais pela pontuação (do maior pro menor)
+            const rankeados = resRanking.data
+                .filter(u => !u.is_staff) 
+                .sort((a, b) => b.pontuacao_total - a.pontuacao_total);
+                
             setRanking(rankeados);
         } catch (error) {
             console.error("Erro ao carregar dados", error);
@@ -150,6 +154,14 @@ export default function Dashboard() {
                             <div style={styles.rankingPosicao}>
                                 {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}º`}
                             </div>
+                            
+                            {/* NOVO: Renderiza a foto de perfil de cada competidor no ranking */}
+                            <img 
+                                src={u.foto_perfil || 'https://via.placeholder.com/32'} 
+                                style={{width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', marginRight: '10px', border: '1px solid #cbd5e1'}}
+                                alt="Avatar Competidor"
+                            />
+
                             <div style={styles.rankingNome}>
                                 <strong>{u.username}</strong>
                                 {u.username === user?.username && <span style={styles.voceTag}>Você</span>}
@@ -160,13 +172,19 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* NAVEGAÇÃO PRINCIPAL */}
             <nav style={styles.navbar}>
                 <div style={styles.navBrand}>Integra Bolão</div>
                 <div style={styles.navLinks}>
-                    <span style={styles.userBadge}>Olá, {user?.username} ({user?.pontuacao_total} pts)</span>
+                    {/* Atalho clicável para o perfil pessoal */}
+                    <div onClick={() => navigate('/perfil')} style={{display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer'}}>
+                        <img 
+                            src={user?.foto_perfil || 'https://via.placeholder.com/32'} 
+                            style={{width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '2px solid white'}}
+                            alt="Avatar"
+                        />
+                        <span style={styles.userBadge}>Olá, {user?.username} ({user?.pontuacao_total} pts)</span>
+                    </div>
                     
-                    {/* Botão de Administração exclusivo para membros da equipe (staff) */}
                     {user?.is_staff && (
                         <button onClick={() => navigate('/admin-jogos')} style={{...styles.navButton, backgroundColor: '#0f172a', border: 'none'}}>
                             ⚙️ Admin

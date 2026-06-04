@@ -28,3 +28,9 @@ class UsuarioPerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['id', 'username', 'email', 'pontuacao_total', 'is_staff']
+
+class UsuarioPerfilSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        # Adicionamos first_name e last_name para dados pessoais e foto_perfil
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'pontuacao_total', 'foto_perfil', 'is_staff']

@@ -146,5 +146,11 @@ AUTH_USER_MODEL = 'usuarios.Usuario'
 # Libera o acesso da API para o Front-end local
 CORS_ALLOW_ALL_ORIGINS = True
 
+import os
+
+# Configuração para arquivos enviados por usuários (Uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
