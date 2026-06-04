@@ -132,6 +132,12 @@ export default function Perfil() {
             </nav>
 
             <main style={styles.container}>
+                {/* AVISO DE BOAS VINDAS PARA NOVOS USUÁRIOS */}
+                {(!user?.first_name) && (
+                        <div style={{...styles.banner, backgroundColor: '#fef3c7', color: '#92400e', marginBottom: '20px'}}>
+                            <strong>Bem-vindo ao Bolão Integra!</strong> Complete seu cadastro abaixo para participar do ranking com seu nome e foto.
+                        </div>
+                )}
                 <div style={styles.profileSection}>
                     <div style={styles.card}>
                         <h2 style={styles.title}>Meus Dados Pessoais</h2>

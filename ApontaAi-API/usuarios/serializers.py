@@ -25,12 +25,37 @@ class UsuarioCadastroSerializer(serializers.ModelSerializer):
         return usuario
 
 class UsuarioPerfilSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Usuario
-        fields = ['id', 'username', 'email', 'pontuacao_total', 'is_staff']
+    # Criamos um campo customizado para garantir que sempre retornaremos uma URL válida
+    foto_perfil = serializers.SerializerMethodField()
 
-class UsuarioPerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        # Adicionamos first_name e last_name para dados pessoais e foto_perfil
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'pontuacao_total', 'foto_perfil', 'is_staff']
+
+    def get_foto_perfil(self, obj):
+        # Se o usuário não tem foto, retorna None ou o link do DiceBear que definimos no model
+        if obj.foto_perfil:
+            # Verifica se é uma URL externa (começa com http) ou um arquivo local
+            if str(obj.foto_perfil).startswith('http'):
+                return str(obj.foto_perfil)
+            # Se for local, retorna a URL absoluta
+            return obj.foto_perfil.url
+        return None
+    
+class UsuarioPerfilSerializer(serializers.ModelSerializer):
+    foto_perfil = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Usuario
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'pontuacao_total', 'foto_perfil', 'is_staff']
+
+    def get_foto_perfil(self, obj):
+        # Se tem foto, retorna a URL da imagem
+        if obj.foto_perfil:
+            # Verifica se é uma URL externa (já é do DiceBear)
+            if str(obj.foto_perfil).startswith('http'):
+                return str(obj.foto_perfil)
+            return obj.foto_perfil.url
+        
+        # SE NÃO TEM FOTO (foi removida), gera a URL do DiceBear agora!
+        return f"https://api.dicebear.com/9.x/adventurer/svg?seed={obj.username}"

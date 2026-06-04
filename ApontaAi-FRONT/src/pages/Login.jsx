@@ -21,6 +21,7 @@ export default function Login() {
         e.preventDefault();
         setFeedback({ texto: '', tipo: '' });
         setLoading(true);
+        
 
         try {
             if (modo === 'login') {
@@ -29,13 +30,15 @@ export default function Login() {
             } 
             else if (modo === 'cadastro') {
                 if (!email.endsWith('@integrasist.com.br')) {
-                    setFeedback({ texto: 'O cadastro é restrito para e-mails @integrasist.com.br', tipo: 'erro' });
+                    setFeedback({ texto: 'Cadastro restrito para @integrasist.com.br', tipo: 'erro' });
                     setLoading(false);
                     return;
                 }
                 await api.post('/usuarios/', { username, email, password });
                 await login(username, password);
-                navigate('/dashboard');
+                
+                // ALTERAÇÃO AQUI: Redireciona para o perfil para completar o cadastro
+                navigate('/perfil');
             } 
             else if (modo === 'recuperar') {
                 await api.post('/usuarios/alterar-senha-login/', { username, email, password });

@@ -1,36 +1,34 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
-from django.db import transaction
-from django.db.models import F
-
 from .models import Jogo
-from palpites.models import Palpite
 from usuarios.models import Usuario
+from palpites.models import Palpite
 
+def recalcular_pontuacoes_usuarios():
+    # 1. Zera as pontuações primeiro para evitar soma duplicada caso o admin edite o jogo várias vezes
+    Usuario.objects.update(pontuacao_total=0)
+    Palpite.objects.update(pontuou=False)
+
+    # 2. Pega todos os jogos finalizados que possuem um resultado definido
+    jogos_finalizados = Jogo.objects.filter(status='finalizado').exclude(resultado__isnull=True).exclude(resultado='')
+
+    # 3. Atualiza os palpites que acertaram o resultado
+    for jogo in jogos_finalizados:
+        # Marca 'pontuou=True' para todos os palpites onde a escolha foi igual ao resultado real do jogo
+        Palpite.objects.filter(jogo=jogo, escolha=jogo.resultado).update(pontuou=True)
+
+    # 4. Calcula e salva o saldo final de cada usuário (10 pontos por acerto)
+    for usuario in Usuario.objects.all():
+        total_acertos = Palpite.objects.filter(usuario=usuario, pontuou=True).count()
+        usuario.pontuacao_total = total_acertos * 10
+        usuario.save()
+
+# Aciona o recálculo sempre que um Jogo for Salvo ou Atualizado
 @receiver(post_save, sender=Jogo)
-def processar_resultado_jogo(sender, instance, **kwargs):
-    # Verifica se o jogo acabou e se tem um resultado válido
-    if instance.status == 'finalizado' and instance.resultado:
-        
-        # O transaction.atomic garante que, se algo falhar no meio, nenhuma alteração
-        # parcial seja salva no banco de dados (Rollback automático).
-        with transaction.atomic():
-            
-            # 1. Identifica os palpites corretos
-            palpites_corretos = Palpite.objects.filter(jogo=instance, escolha=instance.resultado, pontuou__isnull=True)
-            
-            # 2. Identifica os palpites errados
-            palpites_errados = Palpite.objects.filter(jogo=instance, pontuou__isnull=True).exclude(escolha=instance.resultado)
-            
-            # 3. Extrai apenas os IDs dos usuários que acertaram para atualizar as pontuações em lote
-            usuarios_ganhadores_ids = palpites_corretos.values_list('usuario_id', flat=True)
-            
-            # 4. Atualiza a pontuação dos usuários no banco de dados (exemplo: 10 pontos por acerto)
-            if usuarios_ganhadores_ids.exists():
-                Usuario.objects.filter(id__in=usuarios_ganhadores_ids).update(
-                    pontuacao_total=F('pontuacao_total') + 10
-                )
-            
-            # 5. Por fim, marca o status do palpite para que não seja pontuado duas vezes
-            palpites_corretos.update(pontuou=True)
-            palpites_errados.update(pontuou=False)
+def atualizar_pontuacao_ao_salvar(sender, instance, **kwargs):
+    recalcular_pontuacoes_usuarios()
+
+# Aciona o recálculo sempre que um Jogo for Deletado
+@receiver(post_delete, sender=Jogo)
+def atualizar_pontuacao_ao_deletar(sender, instance, **kwargs):
+    recalcular_pontuacoes_usuarios()

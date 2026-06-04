@@ -23,11 +23,11 @@ router.register(r'palpites', PalpiteViewSet, basename='palpite')
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Rotas de Autenticação JWT (As que estavam faltando!)
+    # Rotas de Autenticação JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
-    # Rotas da nossa API (usuários, jogos, palpites)
+    # Rotas da nossa API (somente usuários, jogos e palpites agora)
     path('api/', include(router.urls)),
 ]
 

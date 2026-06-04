@@ -41,6 +41,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 
             return Response(serializer.data)
 
+    
     # 2. Endpoint Público para Alterar Senha no Login (Não Autenticado)
     @action(detail=False, methods=['post'], url_path='alterar-senha-login')
     def alterar_senha_login(self, request):

@@ -6,12 +6,10 @@ class JogosConfig(AppConfig):
     name = 'jogos'
 
     def ready(self):
-        # Mantém a importação do Signal que fizemos anteriormente
+        # 1. LIGA O MOTOR DE PONTUAÇÃO (Isso garante que o signals.py seja executado)
         import jogos.signals
-        
-        # Inicia o agendador de tarefas automático
-        # A condicional RUN_MAIN == 'true' impede que o agendador rode duas vezes 
-        # por conta do sistema de "auto-reload" (Hot Reload) do servidor de desenvolvimento do Django.
+
+        # 2. Mantém o seu agendador de tarefas intacto
         if os.environ.get('RUN_MAIN', None) == 'true':
             from . import tarefas
             tarefas.iniciar_agendador()
